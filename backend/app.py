@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify, render_template
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,7 +7,9 @@ app = Flask(__name__)
 
 # Database connection function
 def get_db_connection():
-    conn = sqlite3.connect('../db/tickets.db')
+    # Get the absolute path of tickets.db
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../db/tickets.db')
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
