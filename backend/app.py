@@ -46,6 +46,34 @@ def token_required(f):
 def home():
     return 'Ticketing System API is running!'
 
+# User registration
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.form
+    name = data['name']
+    email = data['email']
+    password = data['password']
+
+    # Check if the user already exists
+    conn = get_db_connection()
+    existing_user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+    if existing_user:
+        conn.close()
+        return jsonify({'error': 'User already exists!'}), 400
+
+    # Hash the password
+    password_hash = generate_password_hash(password)
+
+    # Insert the new user into the database
+    conn.execute(
+        'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+        (name, email, password_hash, 'User')
+    )
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'User registered successfully!'}), 201
+
 # User login
 @app.route('/login', methods=['POST'])
 def login():
