@@ -23,21 +23,26 @@ def get_db_connection():
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get('Authorization')  # Expecting token in the Authorization header
+        token = request.headers.get('Authorization')  # Fetch token from Authorization header
+
+        print("Authorization Header:", token)  # Log the raw token
 
         if not token:
             return jsonify({'error': 'Token is missing!'}), 401
 
         try:
-            # Decode the token using the same secret key
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-            current_user = {'user_id': data['user_id']}  # Extract user_id from the token
+            # Decode token using the app's SECRET_KEY
+            data = jwt.decode(token.split(" ")[1], app.config['SECRET_KEY'], algorithms=['HS256'])
+
+            print("Decoded Token:", data)  # Log decoded data (if decoding succeeds)
+
+            current_user = {'user_id': data['user_id']}
         except jwt.ExpiredSignatureError:
             return jsonify({'error': 'Token has expired!'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'error': 'Invalid token!'}), 401
 
-        return f(current_user, *args, **kwargs)  # Pass current_user to the wrapped function
+        return f(current_user, *args, **kwargs)
 
     return decorated
 
@@ -86,9 +91,12 @@ def login():
     conn.close()
 
     if user and check_password_hash(user['password_hash'], password):
-        # Generate a JWT token
+        # Generate a JWT token with 10 seconds expiration time
         token = jwt.encode(
-            {'user_id': user['id'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+            {
+                'user_id': user['id'],
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
+            },
             app.config['SECRET_KEY'],
             algorithm='HS256'
         )
