@@ -2,11 +2,11 @@ import jwt
 import datetime
 from functools import wraps
 import os
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template  # Only one import here
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates')  # Adjust the path as needed
 
 # Secret key for encoding/decoding JWT
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -49,7 +49,7 @@ def token_required(f):
 # Home route
 @app.route('/')
 def home():
-    return 'Ticketing System API is running!'
+    return render_template('index.html')  # Flask will now look for this file in the templates folder
 
 # User registration
 @app.route('/register', methods=['POST'])
@@ -140,4 +140,3 @@ def get_tickets(current_user):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
