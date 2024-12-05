@@ -1,31 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit Ticket</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Ticket</title>
+  <script>
+    // Function to submit the ticket with token in the header
+    function submitTicket(event) {
+      event.preventDefault(); // Prevent the default form submission
+
+      const token = localStorage.getItem('authToken'); // Get the token from localStorage
+
+      if (!token) {
+        alert("Please log in to submit a ticket.");
+        window.location.href = '/login';  // Redirect to login page if no token
+        return;
+      }
+
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const priority = document.getElementById("priority").value;
+
+      // Send the POST request to the backend to submit the ticket
+      fetch('/submit-ticket', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Bearer ${token}` // Add token in Authorization header
+        },
+        body: new URLSearchParams({
+          title: title,
+          description: description,
+          priority: priority
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+        } else {
+          alert(data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error submitting ticket:', error);
+      });
+    }
+  </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Submit a Ticket</h1>
-        <form action="/submit-ticket" method="POST">
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title" required>
-            
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" rows="5" required></textarea>
-            
-            <label for="priority">Priority:</label>
-            <select id="priority" name="priority" required>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-                <option value="Critical">Critical</option>
-            </select>
-            
-            <button type="submit">Submit Ticket</button>
-        </form>
-    </div>
+
+  <h2>Submit a Ticket</h2>
+
+  <!-- Ticket submission form -->
+  <form onsubmit="submitTicket(event)">
+    <label for="title">Title:</label>
+    <input type="text" id="title" required><br><br>
+
+    <label for="description">Description:</label>
+    <textarea id="description" required></textarea><br><br>
+
+    <label for="priority">Priority:</label>
+    <select id="priority">
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+    </select><br><br>
+
+    <button type="submit">Submit Ticket</button>
+  </form>
+
 </body>
 </html>

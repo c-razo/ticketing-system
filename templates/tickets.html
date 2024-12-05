@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Tickets</title>
+</head>
+<body>
+    <h1>Your Tickets</h1>
+    <ul id="tickets-list">
+        <!-- Tickets will be dynamically loaded here -->
+    </ul>
+    <script>
+        // Retrieve the token from localStorage
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert("You are not logged in!");
+            window.location.href = "/login"; // Redirect to login page if no token
+        } else {
+            // Fetch tickets from the server
+            fetch('/tickets', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Failed to fetch tickets");
+                }
+                return response.json();
+            })
+            .then(data => {
+                const ticketsList = document.getElementById('tickets-list');
+                data.tickets.forEach(ticket => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Ticket #${ticket.id}: ${ticket.title} - ${ticket.description} (Priority: ${ticket.priority})`;
+                    ticketsList.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Failed to load tickets. Please try again.");
+            });
+        }
+    </script>
+</body>
+</html>
